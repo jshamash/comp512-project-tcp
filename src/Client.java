@@ -46,9 +46,11 @@ public class Client {
 		String userInput;
 
 		try {
+			System.out.println("Enter something: ");
 			while ((userInput = stdIn.readLine()) != null) {
 				out.println(userInput);
-				System.out.println(in.readLine());
+				System.out.println("received: in.readLine()");
+				System.out.println("Enter something: ");
 			}
 
 			out.close();

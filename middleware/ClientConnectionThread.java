@@ -31,12 +31,14 @@ public class ClientConnectionThread implements Runnable {
 		String inputLine;
 		while (true) {
 			try {
+				System.out.println("Waiting for client input...");
 				inputLine = clientInput.readLine();
 				if (inputLine == null) {
 					System.out.println("Closing connection with a client...");
 					clientSocket.close();
 					return;
 				}
+				System.out.println("Got client input: " + inputLine);
 				clientOutput.write("received input: " + inputLine);
 			} catch (IOException e) {
 				// Couldn't read from client input

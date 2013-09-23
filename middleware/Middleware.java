@@ -30,8 +30,10 @@ public class Middleware {
 		// Wait for incoming client connections
 		while (true) {
 			try {
+				System.out.println("Waiting for a connection....");
 				clientSocket = serverSocket.accept();
 				// Client connection started
+				System.out.println("Got a connection!");
 				(new ClientConnectionThread(clientSocket)).run();
 				
 			} catch (IOException e) {
