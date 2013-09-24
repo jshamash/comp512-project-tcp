@@ -4,12 +4,23 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+/**
+ * One of these threads gets run per client. We don't need to worry about
+ * concurrent requests from client, since client blocks waiting for response.
+ * 
+ * @author Jake Shamash
+ *  
+ */
 public class ClientConnectionThread implements Runnable {
 
 	private Socket clientSocket = null;
+	private String host1;
+	private int port1;
 
-	public ClientConnectionThread(Socket clientSocket) {
+	public ClientConnectionThread(Socket clientSocket, String host1, int port1) {
 		this.clientSocket = clientSocket;
+		this.host1 = host1;
+		this.port1 = port1;
 	}
 
 	public void run() {
@@ -17,16 +28,15 @@ public class ClientConnectionThread implements Runnable {
 		BufferedReader clientInput;
 		try {
 			// Prints output at the client
-			clientOutput = new PrintWriter(
-					clientSocket.getOutputStream(), true);
+			clientOutput = new PrintWriter(clientSocket.getOutputStream());
 			// Reads input from the client
-			clientInput = new BufferedReader(
-					new InputStreamReader(clientSocket.getInputStream()));
+			clientInput = new BufferedReader(new InputStreamReader(
+					clientSocket.getInputStream()));
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
 		}
-		
+
 		// Handle incoming requests from client
 		String inputLine;
 		while (true) {
@@ -39,14 +49,16 @@ public class ClientConnectionThread implements Runnable {
 					return;
 				}
 				System.out.println("Got client input: " + inputLine);
-				clientOutput.write("received input: " + inputLine);
+				// Here we will look at the input to see what needs to be done
+				// with it.
+
+				// clientOutput.println("received input: " + inputLine);
 			} catch (IOException e) {
 				// Couldn't read from client input
 				e.printStackTrace();
 				return;
 			}
 		}
-		
 
 	}
 }

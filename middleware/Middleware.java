@@ -14,13 +14,15 @@ public class Middleware {
 	 *            The port to listen on for the client to connect to.
 	 */
 	public static void main(String[] args) {
-		if (args.length != 1) {
-			System.out.println("Usage: java Middleware [port]");
+		if (args.length != 3) {
+			System.out.println("Usage: java Middleware [server-1-host] [server-1-port] [listen-port]");
 			System.exit(1);
 		}
 
 		//clientThreads = new ClientConnectionThread[MAX_CLIENTS];
-		int port = Integer.parseInt(args[0]);
+		String host1 = args[0];
+		int port1 = Integer.parseInt(args[2]);
+		int port = Integer.parseInt(args[3]);
 		try {
 			serverSocket = new ServerSocket(port);
 		} catch (IOException e) {
@@ -34,7 +36,7 @@ public class Middleware {
 				clientSocket = serverSocket.accept();
 				// Client connection started
 				System.out.println("Got a connection!");
-				(new ClientConnectionThread(clientSocket)).run();
+				(new ClientConnectionThread(clientSocket, host1, port1)).run();
 				
 			} catch (IOException e) {
 				e.printStackTrace();
