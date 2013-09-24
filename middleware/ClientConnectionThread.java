@@ -51,6 +51,10 @@ public class ClientConnectionThread implements Runnable {
 				System.out.println("Got client input: " + inputLine);
 				// Here we will look at the input to see what needs to be done
 				// with it.
+				
+				// Pass this message along...
+				// FIXME this should be done in this thread, since client blocks anyway.
+				(new ServerConnectionThread(inputLine, clientOutput, host1, port1)).run();
 
 				// clientOutput.println("received input: " + inputLine);
 			} catch (IOException e) {

@@ -21,8 +21,8 @@ public class Middleware {
 
 		//clientThreads = new ClientConnectionThread[MAX_CLIENTS];
 		String host1 = args[0];
-		int port1 = Integer.parseInt(args[2]);
-		int port = Integer.parseInt(args[3]);
+		int port1 = Integer.parseInt(args[1]);
+		int port = Integer.parseInt(args[2]);
 		try {
 			serverSocket = new ServerSocket(port);
 		} catch (IOException e) {
