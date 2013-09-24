@@ -19,7 +19,7 @@ public class ServerWorker extends Thread {
 		PrintWriter out;
 		try {
 			in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-			out = new PrintWriter(clientSocket.getOutputStream());
+			out = new PrintWriter(clientSocket.getOutputStream(), true);
 			
 			// We expect one line from the client.
 			String input = in.readLine();

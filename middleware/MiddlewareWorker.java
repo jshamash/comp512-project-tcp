@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 /**
  * One of these threads gets run per client. We don't need to worry about
@@ -29,7 +28,7 @@ public class MiddlewareWorker extends Thread {
 		BufferedReader clientInput;
 		try {
 			// Prints output at the client
-			clientOutput = new PrintWriter(clientSocket.getOutputStream());
+			clientOutput = new PrintWriter(clientSocket.getOutputStream(), true);
 			clientOutput.println("gotcha!");
 			// Reads input from the client
 			clientInput = new BufferedReader(new InputStreamReader(
