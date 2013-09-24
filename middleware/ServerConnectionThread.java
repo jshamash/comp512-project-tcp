@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class ServerConnectionThread implements Runnable {
+public class ServerConnectionThread extends Thread {
 
 	private String message;
 	private PrintWriter clientOutput;

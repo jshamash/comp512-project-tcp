@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 
-public class ServerWorker implements Runnable {
+public class ServerWorker extends Thread {
 
 	private Socket clientSocket;
 	

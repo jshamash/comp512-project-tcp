@@ -11,7 +11,7 @@ import java.net.Socket;
  * @author Jake Shamash
  *  
  */
-public class ClientConnectionThread implements Runnable {
+public class ClientConnectionThread extends Thread {
 
 	private Socket clientSocket = null;
 	private String host1;

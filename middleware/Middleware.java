@@ -40,6 +40,7 @@ public class Middleware {
 				
 			} catch (IOException e) {
 				e.printStackTrace();
+				break;
 			}
 		}
 
