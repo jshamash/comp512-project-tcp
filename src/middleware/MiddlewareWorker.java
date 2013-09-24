@@ -1,4 +1,5 @@
 package middleware;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -17,13 +18,36 @@ import messages.RequestMessage;
 public class MiddlewareWorker extends Thread {
 
 	private Socket clientSocket = null;
-	private String host1;
-	private int port1;
+	private String flightHostname;
+	private int flightPort;
+	private String carHostname;
+	private int carPort;
+	private String roomHostname;
+	private int roomPort;
 
-	public MiddlewareWorker(Socket clientSocket, String host1, int port1) {
+
+
+	/**
+	 * 
+	 * @param clientSocket
+	 * @param flightHostname
+	 * @param flightPort
+	 * @param carHostname
+	 * @param carPort
+	 * @param roomHostname
+	 * @param roomPort
+	 */
+	public MiddlewareWorker(Socket clientSocket, String flightHostname,
+			int flightPort, String carHostname, int carPort,
+			String roomHostname, int roomPort) {
+		super();
 		this.clientSocket = clientSocket;
-		this.host1 = host1;
-		this.port1 = port1;
+		this.flightHostname = flightHostname;
+		this.flightPort = flightPort;
+		this.carHostname = carHostname;
+		this.carPort = carPort;
+		this.roomHostname = roomHostname;
+		this.roomPort = roomPort;
 	}
 
 	public void run() {
@@ -31,7 +55,8 @@ public class MiddlewareWorker extends Thread {
 		ObjectInputStream clientInput;
 		try {
 			// Prints output at the client
-			clientOutput = new ObjectOutputStream(clientSocket.getOutputStream());
+			clientOutput = new ObjectOutputStream(
+					clientSocket.getOutputStream());
 			// Reads input from the client
 			clientInput = new ObjectInputStream(clientSocket.getInputStream());
 		} catch (IOException e) {
@@ -51,13 +76,75 @@ public class MiddlewareWorker extends Thread {
 					return;
 				}
 				System.out.println("Got client input: " + request);
-				// Here we will look at the input to see what needs to be done
-				// with it.
 
-				// Pass this message along...
-				// This is done in this thread, since client blocks, so this
-				// thread won't be getting any requests anyway.
-				ReplyMessage serverReply = queryServer(host1, port1, request);
+				ReplyMessage serverReply = null;
+
+				// Based on the command, decide where to query.
+				switch (request.getCommand()) {
+				case ADD_CARS:
+					serverReply = queryServer(carHostname, carPort, request);
+					break;
+				case ADD_FLIGHT:
+					serverReply = queryServer(flightHostname, flightPort, request);
+					break;
+				case ADD_ROOMS:
+					serverReply = queryServer(roomHostname, roomPort, request);
+					break;
+				case DELETE_CARS:
+					serverReply = queryServer(carHostname, carPort, request);
+					break;
+				case DELETE_CUSTOMER:
+					// TODO
+					break;
+				case DELETE_FLIGHT:
+					serverReply = queryServer(flightHostname, flightPort, request);
+					break;
+				case DELETE_ROOMS:
+					serverReply = queryServer(roomHostname, roomPort, request);
+					break;
+				case NEW_CUSTOMER:
+					// TODO
+					break;
+				case NEW_CUSTOMER_CID:
+					// TODO
+					break;
+				case QUERY_CARS:
+					serverReply = queryServer(carHostname, carPort, request);
+					break;
+				case QUERY_CARS_PRICE:
+					serverReply = queryServer(carHostname, carPort, request);
+					break;
+				case QUERY_CUSTOMER_INFO:
+					// TODO
+					break;
+				case QUERY_FLIGHT:
+					serverReply = queryServer(flightHostname, flightPort, request);
+					break;
+				case QUERY_FLIGHT_PRICE:
+					serverReply = queryServer(flightHostname, flightPort, request);
+					break;
+				case QUERY_ROOMS:
+					serverReply = queryServer(roomHostname, roomPort, request);
+					break;
+				case QUERY_ROOMS_PRICE:
+					serverReply = queryServer(roomHostname, roomPort, request);
+					break;
+				case RESERVE_CAR:
+					// TODO
+					break;
+				case RESERVE_FLIGHT:
+					// TODO
+					break;
+				case RESERVE_ITINERARY:
+					// TODO
+					break;
+				case RESERVE_ROOM:
+					// TODO
+					break;
+				default:
+					System.err.println("Unrecognized command.");
+					break;
+				}
 				System.out.println("Returning " + serverReply);
 				clientOutput.writeObject(serverReply);
 			} catch (IOException e) {
@@ -73,16 +160,21 @@ public class MiddlewareWorker extends Thread {
 	}
 
 	/**
-	 * Queries a server with the specified query. Blocks while waiting for server response.
-	 * @param hostname of the server to query
-	 * @param port the server is listening on
-	 * @param query to pass to the server
+	 * Queries a server with the specified query. Blocks while waiting for
+	 * server response.
+	 * 
+	 * @param hostname
+	 *            of the server to query
+	 * @param port
+	 *            the server is listening on
+	 * @param query
+	 *            to pass to the server
 	 * @return Server's reply
-	 * @throws IOException 
-	 * @throws ClassNotFoundException 
+	 * @throws IOException
+	 * @throws ClassNotFoundException
 	 */
-	private ReplyMessage queryServer(String hostname, int port, RequestMessage query)
-			throws IOException, ClassNotFoundException {
+	private ReplyMessage queryServer(String hostname, int port,
+			RequestMessage query) throws IOException, ClassNotFoundException {
 		Socket socket;
 		ObjectOutputStream out;
 		ObjectInputStream in;

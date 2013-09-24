@@ -48,7 +48,6 @@ public class ServerWorker extends Thread {
 		}
 
 		return;
-
 	}
 
 	private ReplyMessage process(RequestMessage input) {
@@ -57,100 +56,108 @@ public class ServerWorker extends Thread {
 		ReplyMessage replyMessage = null;
 		Object reply;
 
-		switch (cmd) {
-		case ADD_FLIGHT:
-			reply = rm.addFlight((Integer) params[0], (Integer) params[1],
-					(Integer) params[2], (Integer) params[3]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case ADD_CARS:
-			reply = rm.addCars((Integer) params[0], (String) params[1],
-					(Integer) params[2], (Integer) params[3]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case ADD_ROOMS:
-			reply = rm.addRooms((Integer) params[0], (String) params[1],
-					(Integer) params[2], (Integer) params[3]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case NEW_CUSTOMER:
-			reply = rm.newCustomer((Integer) params[0]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case NEW_CUSTOMER_CID:
-			reply = rm.newCustomer((Integer) params[0], (Integer) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case DELETE_FLIGHT:
-			reply = rm.deleteFlight((Integer) params[0], (Integer) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case DELETE_CARS:
-			reply = rm.deleteCars((Integer) params[0], (String) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case DELETE_ROOMS:
-			reply = rm.deleteRooms((Integer) params[0], (String) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case DELETE_CUSTOMER:
-			reply = rm.deleteCustomer((Integer) params[0], (Integer) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case QUERY_FLIGHT:
-			reply = rm.queryFlight((Integer) params[0], (Integer) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case QUERY_CARS:
-			reply = rm.queryCars((Integer) params[0], (String) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case QUERY_ROOMS:
-			reply = rm.queryRooms((Integer) params[0], (String) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case QUERY_CUSTOMER_INFO:
-			reply = rm.queryCustomerInfo((Integer) params[0],
-					(Integer) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case QUERY_CARS_PRICE:
-			reply = rm.queryCarsPrice((Integer) params[0], (String) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case QUERY_FLIGHT_PRICE:
-			reply = rm.queryFlightPrice((Integer) params[0],
-					(Integer) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case QUERY_ROOMS_PRICE:
-			reply = rm.queryRoomsPrice((Integer) params[0], (String) params[1]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case RESERVE_FLIGHT:
-			reply = rm.reserveFlight((Integer) params[0], (Integer) params[1],
-					(Integer) params[2]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case RESERVE_CAR:
-			reply = rm.reserveCar((Integer) params[0], (Integer) params[1],
-					(String) params[2]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case RESERVE_ROOM:
-			reply = rm.reserveRoom((Integer) params[0], (Integer) params[1],
-					(String) params[2]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		case RESERVE_ITINERARY:
-			reply = rm.reserveItinerary((Integer) params[0],
-					(Integer) params[1], (Vector) params[2],
-					(String) params[3], (Boolean) params[4],
-					(Boolean) params[5]);
-			replyMessage = new ReplyMessage(cmd, reply);
-			break;
-		default:
-			System.err.println("Unexpected command type: " + cmd);
+		synchronized (rm) {
+			switch (cmd) {
+			case ADD_FLIGHT:
+				reply = rm.addFlight((Integer) params[0], (Integer) params[1],
+						(Integer) params[2], (Integer) params[3]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case ADD_CARS:
+				reply = rm.addCars((Integer) params[0], (String) params[1],
+						(Integer) params[2], (Integer) params[3]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case ADD_ROOMS:
+				reply = rm.addRooms((Integer) params[0], (String) params[1],
+						(Integer) params[2], (Integer) params[3]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case NEW_CUSTOMER:
+				reply = rm.newCustomer((Integer) params[0]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case NEW_CUSTOMER_CID:
+				reply = rm
+						.newCustomer((Integer) params[0], (Integer) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case DELETE_FLIGHT:
+				reply = rm.deleteFlight((Integer) params[0],
+						(Integer) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case DELETE_CARS:
+				reply = rm.deleteCars((Integer) params[0], (String) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case DELETE_ROOMS:
+				reply = rm.deleteRooms((Integer) params[0], (String) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case DELETE_CUSTOMER:
+				reply = rm.deleteCustomer((Integer) params[0],
+						(Integer) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case QUERY_FLIGHT:
+				reply = rm
+						.queryFlight((Integer) params[0], (Integer) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case QUERY_CARS:
+				reply = rm.queryCars((Integer) params[0], (String) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case QUERY_ROOMS:
+				reply = rm.queryRooms((Integer) params[0], (String) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case QUERY_CUSTOMER_INFO:
+				reply = rm.queryCustomerInfo((Integer) params[0],
+						(Integer) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case QUERY_CARS_PRICE:
+				reply = rm.queryCarsPrice((Integer) params[0],
+						(String) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case QUERY_FLIGHT_PRICE:
+				reply = rm.queryFlightPrice((Integer) params[0],
+						(Integer) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case QUERY_ROOMS_PRICE:
+				reply = rm.queryRoomsPrice((Integer) params[0],
+						(String) params[1]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case RESERVE_FLIGHT:
+				reply = rm.reserveFlight((Integer) params[0],
+						(Integer) params[1], (Integer) params[2]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case RESERVE_CAR:
+				reply = rm.reserveCar((Integer) params[0], (Integer) params[1],
+						(String) params[2]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case RESERVE_ROOM:
+				reply = rm.reserveRoom((Integer) params[0],
+						(Integer) params[1], (String) params[2]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			case RESERVE_ITINERARY:
+				reply = rm.reserveItinerary((Integer) params[0],
+						(Integer) params[1], (Vector) params[2],
+						(String) params[3], (Boolean) params[4],
+						(Boolean) params[5]);
+				replyMessage = new ReplyMessage(cmd, reply);
+				break;
+			default:
+				System.err.println("Unexpected command type: " + cmd);
+			}
 		}
 
 		return replyMessage;
