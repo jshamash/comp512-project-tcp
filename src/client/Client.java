@@ -1,3 +1,4 @@
+package client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -41,8 +42,7 @@ public class Client {
 		}
 
 		// Read from stdin
-		BufferedReader stdIn = new BufferedReader(new InputStreamReader(
-				System.in));
+		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 		String userInput;
 
 		try {

@@ -1,3 +1,5 @@
+package middleware;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -6,8 +8,9 @@ public class Middleware {
 
 	private static ServerSocket serverSocket = null;
 	private static Socket clientSocket = null;
-//	private static ClientConnectionThread[] clientThreads = null;
-//	private static final int MAX_CLIENTS = 10;
+
+	// private static ClientConnectionThread[] clientThreads = null;
+	// private static final int MAX_CLIENTS = 10;
 
 	/**
 	 * @param args
@@ -19,7 +22,7 @@ public class Middleware {
 			System.exit(1);
 		}
 
-		//clientThreads = new ClientConnectionThread[MAX_CLIENTS];
+		// clientThreads = new ClientConnectionThread[MAX_CLIENTS];
 		String host1 = args[0];
 		int port1 = Integer.parseInt(args[1]);
 		int port = Integer.parseInt(args[2]);
@@ -28,7 +31,7 @@ public class Middleware {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		// Wait for incoming client connections
 		while (true) {
 			try {
@@ -37,7 +40,7 @@ public class Middleware {
 				// Client connection started
 				System.out.println("Got a connection!");
 				(new MiddlewareWorker(clientSocket, host1, port1)).start();
-				
+
 			} catch (IOException e) {
 				e.printStackTrace();
 				break;
