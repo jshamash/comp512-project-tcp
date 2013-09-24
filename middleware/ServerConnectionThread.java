@@ -45,6 +45,7 @@ public class ServerConnectionThread implements Runnable {
 			// Forward request to server and await reply
 			out.println(message);
 			String reply = in.readLine();
+			System.out.println("Got a reply from server: " + reply);
 
 			// We got a reply, so close everything and forward reply to client.
 			socket.close();

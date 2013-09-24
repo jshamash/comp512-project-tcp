@@ -24,6 +24,7 @@ public class ServerWorker implements Runnable {
 			// We expect one line from the client.
 			String input = in.readLine();
 			String output = process(input);
+			System.out.println("Sending \"" + output + "\" to outstream");
 			out.println(output);
 			
 			// My job here is done!
