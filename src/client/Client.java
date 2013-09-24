@@ -3,17 +3,22 @@ package client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import messages.Command;
+import messages.ReplyMessage;
+import messages.RequestMessage;
+
 public class Client {
 
 	static Socket socket = null;
-	static PrintWriter out = null;
-	static BufferedReader in = null;
+	static ObjectOutputStream out = null;
+	static ObjectInputStream in = null;
 	static BufferedReader stdIn = new BufferedReader(new InputStreamReader(
 			System.in));
 
@@ -37,9 +42,8 @@ public class Client {
 		try {
 			// TODO put this in client constructor
 			socket = new Socket(host, port);
-			out = new PrintWriter(socket.getOutputStream(), true);
-			in = new BufferedReader(new InputStreamReader(
-					socket.getInputStream()));
+			out = new ObjectOutputStream(socket.getOutputStream());
+			in = new ObjectInputStream(socket.getInputStream());
 		} catch (UnknownHostException e) {
 			System.err.println("Unknown host: " + host);
 			exit(-1);
@@ -71,10 +75,10 @@ public class Client {
 			try {
 				command = command.trim();
 				arguments = client.parse(command);
-				String requestMessage = client.getCommand(command, arguments);
+				RequestMessage requestMessage = client.getCommand(command, arguments);
 				if (requestMessage != null) {
-					out.println(requestMessage);
-					String received = in.readLine();
+					out.writeObject(requestMessage);
+					ReplyMessage received = (ReplyMessage) in.readObject();
 					System.out.println("received: " + received);
 				}
 			} catch (Exception e) {
@@ -86,21 +90,22 @@ public class Client {
 	}
 
 	/**
-	 * Verifies syntax and parses rewuest as a message.
+	 * Verifies syntax and parses request as a message.
 	 * 
 	 * @param command
 	 * @param arguments
 	 * @return
 	 * @throws Exception
 	 */
-	public String getCommand(String command, Vector arguments) throws Exception {
+	public RequestMessage getCommand(String command, Vector arguments)
+			throws Exception {
 
 		int Id, Cid;
 		int flightNum;
 		int flightPrice;
 		int flightSeats;
-		boolean Room;
-		boolean Car;
+		boolean room;
+		boolean car;
 		int price;
 		int numRooms;
 		int numCars;
@@ -135,8 +140,8 @@ public class Client {
 			flightNum = getInt(arguments.elementAt(2));
 			flightSeats = getInt(arguments.elementAt(3));
 			flightPrice = getInt(arguments.elementAt(4));
-			return "newflight," + Id + "," + flightNum + "," + flightSeats
-					+ "," + flightPrice;
+			return new RequestMessage(Command.ADD_FLIGHT, new Object[] { Id,
+					flightNum, flightSeats, flightPrice });
 
 		case 3: // new Car
 			if (arguments.size() != 5) {
@@ -152,8 +157,8 @@ public class Client {
 			location = getString(arguments.elementAt(2));
 			numCars = getInt(arguments.elementAt(3));
 			price = getInt(arguments.elementAt(4));
-			return "newcar," + Id + "," + location + "," + numCars + ","
-					+ price;
+			return new RequestMessage(Command.ADD_CARS, new Object[] { Id,
+					location, numCars, price });
 
 		case 4: // new Room
 			if (arguments.size() != 5) {
@@ -170,8 +175,8 @@ public class Client {
 			location = getString(arguments.elementAt(2));
 			numRooms = getInt(arguments.elementAt(3));
 			price = getInt(arguments.elementAt(4));
-			return "newroom," + Id + "," + location + "," + numRooms + ","
-					+ price;
+			return new RequestMessage(Command.ADD_ROOMS, new Object[] { Id,
+					location, numRooms, price });
 
 		case 5: // new Customer
 			if (arguments.size() != 2) {
@@ -181,7 +186,7 @@ public class Client {
 			System.out.println("Adding a new Customer using id:"
 					+ arguments.elementAt(1));
 			Id = getInt(arguments.elementAt(1));
-			return "newcustomer," + Id;
+			return new RequestMessage(Command.NEW_CUSTOMER, new Object[] { Id });
 
 		case 6: // delete Flight
 			if (arguments.size() != 3) {
@@ -193,7 +198,8 @@ public class Client {
 			System.out.println("Flight Number: " + arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			flightNum = getInt(arguments.elementAt(2));
-			return "deleteflight," + Id + "," + flightNum;
+			return new RequestMessage(Command.DELETE_FLIGHT, new Object[] { Id,
+					flightNum });
 
 		case 7: // delete Car
 			if (arguments.size() != 3) {
@@ -206,7 +212,8 @@ public class Client {
 			System.out.println("Car Location: " + arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			location = getString(arguments.elementAt(2));
-			return "deletecar," + Id + "," + location;
+			return new RequestMessage(Command.DELETE_CARS, new Object[] { Id,
+					location });
 
 		case 8: // delete Room
 			if (arguments.size() != 3) {
@@ -219,7 +226,8 @@ public class Client {
 			System.out.println("Room Location: " + arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			location = getString(arguments.elementAt(2));
-			return "deleteroom," + Id + "," + location;
+			return new RequestMessage(Command.DELETE_ROOMS, new Object[] { Id,
+					location });
 
 		case 9: // delete Customer
 			if (arguments.size() != 3) {
@@ -232,7 +240,8 @@ public class Client {
 			System.out.println("Customer id: " + arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			int customer = getInt(arguments.elementAt(2));
-			return "deletecustomer," + Id + "," + customer;
+			return new RequestMessage(Command.DELETE_CUSTOMER, new Object[] {
+					Id, customer });
 
 		case 10: // querying a flight
 			if (arguments.size() != 3) {
@@ -244,7 +253,8 @@ public class Client {
 			System.out.println("Flight number: " + arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			flightNum = getInt(arguments.elementAt(2));
-			return "queryflight," + Id + "," + flightNum;
+			return new RequestMessage(Command.QUERY_FLIGHT, new Object[] { Id,
+					flightNum });
 
 		case 11: // querying a Car Location
 			if (arguments.size() != 3) {
@@ -256,7 +266,8 @@ public class Client {
 			System.out.println("Car location: " + arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			location = getString(arguments.elementAt(2));
-			return "querycar," + Id + "," + location;
+			return new RequestMessage(Command.QUERY_CARS, new Object[] { Id,
+					location });
 
 		case 12: // querying a Room location
 			if (arguments.size() != 3) {
@@ -268,7 +279,8 @@ public class Client {
 			System.out.println("Room location: " + arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			location = getString(arguments.elementAt(2));
-			return "queryroom," + Id + "," + location;
+			return new RequestMessage(Command.QUERY_ROOMS, new Object[] { Id,
+					location });
 
 		case 13: // querying Customer Information
 			if (arguments.size() != 3) {
@@ -280,7 +292,8 @@ public class Client {
 			System.out.println("Customer id: " + arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			customer = getInt(arguments.elementAt(2));
-			return "querycustomer," + Id + "," + customer;
+			return new RequestMessage(Command.QUERY_CUSTOMER_INFO,
+					new Object[] { Id, customer });
 
 		case 14: // querying a flight Price
 			if (arguments.size() != 3) {
@@ -292,7 +305,8 @@ public class Client {
 			System.out.println("Flight number: " + arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			flightNum = getInt(arguments.elementAt(2));
-			return "queryflight," + Id + "," + flightNum;
+			return new RequestMessage(Command.QUERY_FLIGHT_PRICE, new Object[] {
+					Id, flightNum });
 
 		case 15: // querying a Car Price
 			if (arguments.size() != 3) {
@@ -304,7 +318,8 @@ public class Client {
 			System.out.println("Car location: " + arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			location = getString(arguments.elementAt(2));
-			return "querycarprice," + Id + "," + location;
+			return new RequestMessage(Command.QUERY_CARS_PRICE, new Object[] {
+					Id, location });
 
 		case 16: // querying a Room price
 			if (arguments.size() != 3) {
@@ -316,7 +331,8 @@ public class Client {
 			System.out.println("Room Location: " + arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			location = getString(arguments.elementAt(2));
-			return "queryroomprice," + Id + "," + location;
+			return new RequestMessage(Command.QUERY_ROOMS_PRICE, new Object[] {
+					Id, location });
 
 		case 17: // reserve a flight
 			if (arguments.size() != 4) {
@@ -330,7 +346,8 @@ public class Client {
 			Id = getInt(arguments.elementAt(1));
 			customer = getInt(arguments.elementAt(2));
 			flightNum = getInt(arguments.elementAt(3));
-			return "reserveflight," + Id + "," + customer + "," + flightNum;
+			return new RequestMessage(Command.RESERVE_FLIGHT, new Object[] {
+					Id, customer, flightNum });
 
 		case 18: // reserve a car
 			if (arguments.size() != 4) {
@@ -344,7 +361,8 @@ public class Client {
 			Id = getInt(arguments.elementAt(1));
 			customer = getInt(arguments.elementAt(2));
 			location = getString(arguments.elementAt(3));
-			return "reservecar," + Id + "," + customer + "," + location;
+			return new RequestMessage(Command.RESERVE_CAR, new Object[] { Id,
+					customer, location });
 
 		case 19: // reserve a room
 			if (arguments.size() != 4) {
@@ -358,7 +376,8 @@ public class Client {
 			Id = getInt(arguments.elementAt(1));
 			customer = getInt(arguments.elementAt(2));
 			location = getString(arguments.elementAt(3));
-			return "reserveroom," + Id + "," + customer + "," + location;
+			return new RequestMessage(Command.RESERVE_ROOM, new Object[] { Id,
+					customer, location });
 
 		case 20: // reserve an Itinerary
 			if (arguments.size() < 7) {
@@ -383,10 +402,10 @@ public class Client {
 			for (int i = 0; i < arguments.size() - 6; i++)
 				flightNumbers.addElement(arguments.elementAt(3 + i));
 			location = getString(arguments.elementAt(arguments.size() - 3));
-			Car = getBoolean(arguments.elementAt(arguments.size() - 2));
-			Room = getBoolean(arguments.elementAt(arguments.size() - 1));
-			return "reserveitinerary," + Id + "," + customer + ","
-					+ flightNumbers + "," + location + "," + Car + "," + Room;
+			car = getBoolean(arguments.elementAt(arguments.size() - 2));
+			room = getBoolean(arguments.elementAt(arguments.size() - 1));
+			return new RequestMessage(Command.RESERVE_ITINERARY, new Object[] {
+					Id, customer, flightNumbers, location, car, room});
 
 		case 21: // quit the client
 			if (arguments.size() != 1) {
@@ -406,12 +425,11 @@ public class Client {
 					+ arguments.elementAt(2));
 			Id = getInt(arguments.elementAt(1));
 			Cid = getInt(arguments.elementAt(2));
-			return "newcustID," + Id + "," + Cid;
+			return new RequestMessage(Command.NEW_CUSTOMER_CID, new Object[] {Id, Cid});
 
 		default:
 			System.out.println("The interface does not support this command.");
 			break;
-
 		}
 
 		return null;

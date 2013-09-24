@@ -1,7 +1,10 @@
 package messages;
 
-public class ReplyMessage implements Message {
+import java.io.Serializable;
 
+public class ReplyMessage implements Message, Serializable {
+
+	private static final long serialVersionUID = 8089645795941774146L;
 	Command command;
 	Object reply;
 	

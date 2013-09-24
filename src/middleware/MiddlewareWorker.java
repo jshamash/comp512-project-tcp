@@ -1,9 +1,11 @@
 package middleware;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
+
+import messages.ReplyMessage;
+import messages.RequestMessage;
 
 /**
  * One of these threads gets run per client. We don't need to worry about
@@ -25,44 +27,46 @@ public class MiddlewareWorker extends Thread {
 	}
 
 	public void run() {
-		PrintWriter clientOutput;
-		BufferedReader clientInput;
+		ObjectOutputStream clientOutput;
+		ObjectInputStream clientInput;
 		try {
 			// Prints output at the client
-			clientOutput = new PrintWriter(clientSocket.getOutputStream(), true);
+			clientOutput = new ObjectOutputStream(clientSocket.getOutputStream());
 			// Reads input from the client
-			clientInput = new BufferedReader(new InputStreamReader(
-					clientSocket.getInputStream()));
+			clientInput = new ObjectInputStream(clientSocket.getInputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
 		}
 
 		// Handle incoming requests from client
-		String inputLine;
+		RequestMessage request;
 		while (true) {
 			try {
 				System.out.println("Waiting for client input...");
-				inputLine = clientInput.readLine();
-				if (inputLine == null) {
+				request = (RequestMessage) clientInput.readObject();
+				if (request == null) {
 					System.out.println("Closing connection with a client...");
 					clientSocket.close();
 					return;
 				}
-				System.out.println("Got client input: " + inputLine);
+				System.out.println("Got client input: " + request);
 				// Here we will look at the input to see what needs to be done
 				// with it.
 
 				// Pass this message along...
 				// This is done in this thread, since client blocks, so this
 				// thread won't be getting any requests anyway.
-				String serverReply = queryServer(host1, port1, inputLine);
+				ReplyMessage serverReply = queryServer(host1, port1, request);
 				System.out.println("Returning " + serverReply);
-				clientOutput.println("Server reply: " + serverReply);
+				clientOutput.writeObject("Server reply: " + serverReply);
 			} catch (IOException e) {
 				// Couldn't read from client input or couldn't connect to host
 				e.printStackTrace();
 				return;
+			} catch (ClassNotFoundException e) {
+				// Couldn't understand one of the request or the reply
+				e.printStackTrace();
 			}
 		}
 
@@ -75,19 +79,20 @@ public class MiddlewareWorker extends Thread {
 	 * @param query to pass to the server
 	 * @return Server's reply
 	 * @throws IOException 
+	 * @throws ClassNotFoundException 
 	 */
-	private String queryServer(String hostname, int port, String query)
-			throws IOException {
+	private ReplyMessage queryServer(String hostname, int port, RequestMessage query)
+			throws IOException, ClassNotFoundException {
 		Socket socket;
-		PrintWriter out;
-		BufferedReader in;
+		ObjectOutputStream out;
+		ObjectInputStream in;
 		socket = new Socket(hostname, port);
-		out = new PrintWriter(socket.getOutputStream(), true);
-		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		out = new ObjectOutputStream(socket.getOutputStream());
+		in = new ObjectInputStream(socket.getInputStream());
 
 		// Forward request to server and await reply
-		out.println(query);
-		String reply = in.readLine();
+		out.writeObject(query);
+		ReplyMessage reply = (ReplyMessage) in.readObject();
 
 		// We got a reply, so close everything and return reply.
 		socket.close();

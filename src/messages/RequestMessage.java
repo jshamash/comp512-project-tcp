@@ -1,12 +1,15 @@
 package messages;
 
+import java.io.Serializable;
+
 /**
  * Superclass for all messages
  * @author Jake
  *
  */
-public class RequestMessage implements Message {
+public class RequestMessage implements Message, Serializable {
 	
+	private static final long serialVersionUID = -7115353980562169097L;
 	Command command;	// header
 	Object[] params;	// body
 	
