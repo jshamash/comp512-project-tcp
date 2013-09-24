@@ -29,7 +29,8 @@ public class ServerWorker extends Thread {
 			
 			// My job here is done!
 			out.close();
-			in.close();			
+			in.close();
+			clientSocket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

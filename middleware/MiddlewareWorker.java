@@ -29,7 +29,6 @@ public class MiddlewareWorker extends Thread {
 		try {
 			// Prints output at the client
 			clientOutput = new PrintWriter(clientSocket.getOutputStream(), true);
-			clientOutput.println("gotcha!");
 			// Reads input from the client
 			clientInput = new BufferedReader(new InputStreamReader(
 					clientSocket.getInputStream()));
@@ -42,7 +41,6 @@ public class MiddlewareWorker extends Thread {
 		String inputLine;
 		while (true) {
 			try {
-				clientOutput.println("Well?");
 				System.out.println("Waiting for client input...");
 				inputLine = clientInput.readLine();
 				if (inputLine == null) {
@@ -58,6 +56,7 @@ public class MiddlewareWorker extends Thread {
 				// This is done in this thread, since client blocks, so this
 				// thread won't be getting any requests anyway.
 				String serverReply = queryServer(host1, port1, inputLine);
+				System.out.println("Returning " + serverReply);
 				clientOutput.println("Server reply: " + serverReply);
 			} catch (IOException e) {
 				// Couldn't read from client input or couldn't connect to host
@@ -88,7 +87,6 @@ public class MiddlewareWorker extends Thread {
 		// Forward request to server and await reply
 		out.println(query);
 		String reply = in.readLine();
-		System.out.println("Got a reply from server: " + reply);
 
 		// We got a reply, so close everything and return reply.
 		socket.close();
