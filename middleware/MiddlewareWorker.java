@@ -30,6 +30,7 @@ public class MiddlewareWorker extends Thread {
 		try {
 			// Prints output at the client
 			clientOutput = new PrintWriter(clientSocket.getOutputStream());
+			clientOutput.println("gotcha!");
 			// Reads input from the client
 			clientInput = new BufferedReader(new InputStreamReader(
 					clientSocket.getInputStream()));
@@ -42,6 +43,7 @@ public class MiddlewareWorker extends Thread {
 		String inputLine;
 		while (true) {
 			try {
+				clientOutput.println("Well?");
 				System.out.println("Waiting for client input...");
 				inputLine = clientInput.readLine();
 				if (inputLine == null) {
