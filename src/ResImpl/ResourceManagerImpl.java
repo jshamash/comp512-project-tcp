@@ -154,8 +154,7 @@ public class ResourceManagerImpl implements ResourceManager {
 	// Create a new room location or add rooms to an existing location
 	// NOTE: if price <= 0 and the room location already exists, it maintains
 	// its current price
-	public boolean addRooms(int id, String location, int count, int price)
-			throws RemoteException {
+	public boolean addRooms(int id, String location, int count, int price) {
 		Trace.info("RM::addRooms(" + id + ", " + location + ", " + count
 				+ ", $" + price + ") called");
 		Hotel curObj = (Hotel) readData(id, Hotel.getKey(location));
@@ -268,8 +267,7 @@ public class ResourceManagerImpl implements ResourceManager {
 	// customer doesn't exist. Returns empty RMHashtable if customer exists but
 	// has no
 	// reservations.
-	public RMHashtable getCustomerReservations(int id, int customerID)
-			throws RemoteException {
+	public RMHashtable getCustomerReservations(int id, int customerID) {
 		Trace.info("RM::getCustomerReservations(" + id + ", " + customerID
 				+ ") called");
 		Customer cust = (Customer) readData(id, Customer.getKey(customerID));
@@ -283,8 +281,7 @@ public class ResourceManagerImpl implements ResourceManager {
 	}
 
 	// return a bill
-	public String queryCustomerInfo(int id, int customerID)
-			throws RemoteException {
+	public String queryCustomerInfo(int id, int customerID) {
 		Trace.info("RM::queryCustomerInfo(" + id + ", " + customerID
 				+ ") called");
 		Customer cust = (Customer) readData(id, Customer.getKey(customerID));
@@ -391,20 +388,17 @@ public class ResourceManagerImpl implements ResourceManager {
 	 */
 
 	// Adds car reservation to this customer.
-	public boolean reserveCar(int id, int customerID, String location)
-			throws RemoteException {
+	public boolean reserveCar(int id, int customerID, String location) {
 		return reserveItem(id, customerID, Car.getKey(location), location);
 	}
 
 	// Adds room reservation to this customer.
-	public boolean reserveRoom(int id, int customerID, String location)
-			throws RemoteException {
+	public boolean reserveRoom(int id, int customerID, String location) {
 		return reserveItem(id, customerID, Hotel.getKey(location), location);
 	}
 
 	// Adds flight reservation to this customer.
-	public boolean reserveFlight(int id, int customerID, int flightNum)
-			throws RemoteException {
+	public boolean reserveFlight(int id, int customerID, int flightNum) {
 		return reserveItem(id, customerID, Flight.getKey(flightNum),
 				String.valueOf(flightNum));
 	}

@@ -27,6 +27,7 @@ public class Server {
 			System.exit(1);
 		}
 		
+		// This is the resource manager to handle all incoming requests.
 		ResourceManagerImpl rm = new ResourceManagerImpl(); 
 		
 		try {
@@ -35,7 +36,7 @@ public class Server {
 				clientSocket = serverSocket.accept();
 				System.out.println("Got a bind!");
 				// Delegate this task to a worker.
-				(new ServerWorker(clientSocket)).start();
+				(new ServerWorker(clientSocket, rm)).start();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -41,8 +41,7 @@ public interface ResourceManager {
 	 * Add rooms to a location. This should look a lot like addFlight, only
 	 * keyed on a string location instead of a flight number.
 	 */
-	public boolean addRooms(int id, String location, int numRooms, int price)
-			throws RemoteException;
+	public boolean addRooms(int id, String location, int numRooms, int price);
 
 	/* new customer just returns a unique customer identifier */
 	public int newCustomer(int id);
@@ -88,12 +87,10 @@ public interface ResourceManager {
 	public int queryRooms(int id, String location);
 
 	/* return a bill */
-	public String queryCustomerInfo(int id, int customer)
-			throws RemoteException;
+	public String queryCustomerInfo(int id, int customer);
 
 	/* queryFlightPrice returns the price of a seat on this flight. */
-	public int queryFlightPrice(int id, int flightNumber)
-			throws RemoteException;
+	public int queryFlightPrice(int id, int flightNumber);
 
 	/* return the price of a car at a location */
 	public int queryCarsPrice(int id, String location);
@@ -102,16 +99,13 @@ public interface ResourceManager {
 	public int queryRoomsPrice(int id, String location);
 
 	/* Reserve a seat on this flight */
-	public boolean reserveFlight(int id, int customer, int flightNumber)
-			throws RemoteException;
+	public boolean reserveFlight(int id, int customer, int flightNumber);
 
 	/* reserve a car at this location */
-	public boolean reserveCar(int id, int customer, String location)
-			throws RemoteException;
+	public boolean reserveCar(int id, int customer, String location);
 
 	/* reserve a room certain at this location */
-	public boolean reserveRoom(int id, int customer, String locationd)
-			throws RemoteException;
+	public boolean reserveRoom(int id, int customer, String location);
 
 	/* reserve an itinerary */
 	public boolean reserveItinerary(int id, int customer, Vector flightNumbers,
