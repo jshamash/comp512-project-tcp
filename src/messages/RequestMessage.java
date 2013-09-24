@@ -40,6 +40,5 @@ public class RequestMessage implements Message, Serializable {
 			lReturn += param + ",";
 		}
 		return lReturn + "]";
-		
 	}
 }

@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import ResImpl.ResourceManagerImpl;
+
 public class Server {
 	
 	/**
@@ -24,6 +26,8 @@ public class Server {
 			System.err.println("Could not listen on port " + port);
 			System.exit(1);
 		}
+		
+		ResourceManagerImpl rm = new ResourceManagerImpl(); 
 		
 		try {
 			while(true) {
