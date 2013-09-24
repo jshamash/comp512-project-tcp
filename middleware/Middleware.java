@@ -36,7 +36,7 @@ public class Middleware {
 				clientSocket = serverSocket.accept();
 				// Client connection started
 				System.out.println("Got a connection!");
-				(new ClientConnectionThread(clientSocket, host1, port1)).run();
+				(new ClientConnectionThread(clientSocket, host1, port1)).start();
 				
 			} catch (IOException e) {
 				e.printStackTrace();

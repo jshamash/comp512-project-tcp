@@ -54,7 +54,7 @@ public class ClientConnectionThread extends Thread {
 				
 				// Pass this message along...
 				// FIXME this should be done in this thread, since client blocks anyway.
-				(new ServerConnectionThread(inputLine, clientOutput, host1, port1)).run();
+				(new ServerConnectionThread(inputLine, clientOutput, host1, port1)).start();
 
 				// clientOutput.println("received input: " + inputLine);
 			} catch (IOException e) {

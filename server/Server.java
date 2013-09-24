@@ -30,7 +30,7 @@ public class Server {
 				clientSocket = serverSocket.accept();
 				System.out.println("Got a bind!");
 				// Delegate this task to a worker.
-				(new ServerWorker(clientSocket)).run();
+				(new ServerWorker(clientSocket)).start();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
