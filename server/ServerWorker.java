@@ -28,7 +28,6 @@ public class ServerWorker extends Thread {
 			out.println(output);
 			
 			// My job here is done!
-			clientSocket.close();
 			out.close();
 			in.close();			
 		} catch (IOException e) {
