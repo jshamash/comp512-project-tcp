@@ -21,4 +21,9 @@ public class ReplyMessage implements Message, Serializable {
 		return reply;
 	}
 
+	@Override
+	public String toString() {
+		return "ReplyMessage [command=" + command + ", reply=" + reply + "]";
+	}
+
 }

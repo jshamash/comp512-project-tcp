@@ -59,7 +59,7 @@ public class MiddlewareWorker extends Thread {
 				// thread won't be getting any requests anyway.
 				ReplyMessage serverReply = queryServer(host1, port1, request);
 				System.out.println("Returning " + serverReply);
-				clientOutput.writeObject("Server reply: " + serverReply);
+				clientOutput.writeObject(serverReply);
 			} catch (IOException e) {
 				// Couldn't read from client input or couldn't connect to host
 				e.printStackTrace();

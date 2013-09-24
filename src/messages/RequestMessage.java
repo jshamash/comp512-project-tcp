@@ -33,4 +33,13 @@ public class RequestMessage implements Message, Serializable {
 	public Object[] getParams() {
 		return params;
 	}
+	
+	public String toString() {
+		String lReturn = "Request message: [Command: " + command.toString() + ", params: ";
+		for (Object param : params) {
+			lReturn += param + ",";
+		}
+		return lReturn + "]";
+		
+	}
 }
