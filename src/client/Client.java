@@ -79,7 +79,8 @@ public class Client {
 				if (requestMessage != null) {
 					out.writeObject(requestMessage);
 					ReplyMessage received = (ReplyMessage) in.readObject();
-					System.out.println("received: " + received);
+					System.out.println();
+					printReply(received);
 				}
 			} catch (Exception e) {
 				System.err.println("EXCEPTION:");
@@ -87,6 +88,106 @@ public class Client {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private static void printReply(ReplyMessage received) {
+		switch (received.getCommand()) {
+		case ADD_CARS:
+			if ((Boolean) received.getReturnValue())
+				System.out.println("Cars added");
+			else
+				System.out.println("Cars could not be added");
+			break;
+		case ADD_FLIGHT:
+			if ((Boolean) received.getReturnValue())
+				System.out.println("Flight added");
+			else
+				System.out.println("Flight could not be added");
+			break;
+		case ADD_ROOMS:
+			if ((Boolean) received.getReturnValue())
+				System.out.println("Rooms added");
+			else
+				System.out.println("Rooms could not be added");
+			break;
+		case DELETE_CARS:
+			if ((Boolean) received.getReturnValue())
+				System.out.println("Cars Deleted");
+			else
+				System.out.println("Cars could not be deleted");
+			break;
+		case DELETE_CUSTOMER:
+			if ((Boolean) received.getReturnValue())
+				System.out.println("Customer Deleted");
+			else
+				System.out.println("Customer could not be deleted");
+			break;
+		case DELETE_FLIGHT:
+			if ((Boolean) received.getReturnValue())
+				System.out.println("Flight Deleted");
+			else
+				System.out.println("Flight could not be deleted");
+			break;
+		case DELETE_ROOMS:
+			if ((Boolean) received.getReturnValue())
+				System.out.println("Rooms Deleted");
+			else
+				System.out.println("Rooms could not be deleted");
+			break;
+		case NEW_CUSTOMER:
+			System.out.println("new customer id:" + (Integer) received.getReturnValue());
+			break;
+		case NEW_CUSTOMER_CID:
+			break;
+		case QUERY_CARS:
+			System.out.println("number of Cars at this location:" + (Integer) received.getReturnValue());
+			break;
+		case QUERY_CARS_PRICE:
+			System.out.println("Price of a car at this location:" + (Integer) received.getReturnValue());
+			break;
+		case QUERY_CUSTOMER_INFO:
+			System.out.println("Customer info:" + (String) received.getReturnValue());
+			break;
+		case QUERY_FLIGHT:
+			System.out.println("Number of seats available:" + (Integer) received.getReturnValue());
+			break;
+		case QUERY_FLIGHT_PRICE:
+			System.out.println("Price of a seat:" + (Integer) received.getReturnValue());
+			break;
+		case QUERY_ROOMS:
+			System.out.println("number of Rooms at this location:" + (Integer) received.getReturnValue());
+			break;
+		case QUERY_ROOMS_PRICE:
+			System.out.println("Price of Rooms at this location:" + (Integer) received.getReturnValue());
+			break;
+		case RESERVE_CAR:
+			if ((Boolean) received.getReturnValue())
+				System.out.println("Car Reserved");
+			else
+				System.out.println("Car could not be reserved.");
+			break;
+		case RESERVE_FLIGHT:
+			if ((Boolean) received.getReturnValue())
+				System.out.println("Flight Reserved");
+			else
+				System.out.println("Flight could not be reserved.");
+			break;
+		case RESERVE_ITINERARY:
+			if ((Boolean) received.getReturnValue())
+				System.out.println("Itinerary Reserved");
+			else
+				System.out.println("Itinerary could not be reserved.");
+			break;
+		case RESERVE_ROOM:
+			if ((Boolean) received.getReturnValue())
+				System.out.println("Room Reserved");
+			else
+				System.out.println("Room could not be reserved.");
+			break;
+		default:
+			break;
+		}
+		
 	}
 
 	/**
