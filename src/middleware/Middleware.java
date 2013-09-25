@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import ResImpl.CustomerResourceManager;
+
 public class Middleware {
 
 	private static ServerSocket serverSocket = null;
 	private static Socket clientSocket = null;
+	private static CustomerResourceManager crm = null;
 
 	/**
 	 * @param args
@@ -32,6 +35,9 @@ public class Middleware {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		// Initialize a resource manager for handling customer stuff
+		crm = new CustomerResourceManager();
 
 		// Wait for incoming client connections
 		while (true) {
@@ -40,7 +46,7 @@ public class Middleware {
 				clientSocket = serverSocket.accept();
 				// Client connection started
 				System.out.println("Got a connection!");
-				(new MiddlewareWorker(clientSocket, host1, port1, host2, port2, host3, port3)).start();
+				(new MiddlewareWorker(crm, clientSocket, host1, port1, host2, port2, host3, port3)).start();
 
 			} catch (IOException e) {
 				e.printStackTrace();

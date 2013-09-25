@@ -5,6 +5,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+import ResImpl.Car;
+import ResImpl.CustomerResourceManager;
+import ResImpl.Trace;
+
+import messages.Command;
 import messages.ReplyMessage;
 import messages.RequestMessage;
 
@@ -24,11 +29,12 @@ public class MiddlewareWorker extends Thread {
 	private int carPort;
 	private String roomHostname;
 	private int roomPort;
-
-
+	private CustomerResourceManager crm;
 
 	/**
 	 * 
+	 * @param crm
+	 *            CustomerResourceManager that stores cust info for this program
 	 * @param clientSocket
 	 * @param flightHostname
 	 * @param flightPort
@@ -37,10 +43,11 @@ public class MiddlewareWorker extends Thread {
 	 * @param roomHostname
 	 * @param roomPort
 	 */
-	public MiddlewareWorker(Socket clientSocket, String flightHostname,
-			int flightPort, String carHostname, int carPort,
-			String roomHostname, int roomPort) {
+	public MiddlewareWorker(CustomerResourceManager crm, Socket clientSocket,
+			String flightHostname, int flightPort, String carHostname,
+			int carPort, String roomHostname, int roomPort) {
 		super();
+		this.crm = crm;
 		this.clientSocket = clientSocket;
 		this.flightHostname = flightHostname;
 		this.flightPort = flightPort;
@@ -78,6 +85,7 @@ public class MiddlewareWorker extends Thread {
 				System.out.println("Got client input: " + request);
 
 				ReplyMessage serverReply = null;
+				Object reply;
 
 				// Based on the command, decide where to query.
 				switch (request.getCommand()) {
@@ -85,7 +93,8 @@ public class MiddlewareWorker extends Thread {
 					serverReply = queryServer(carHostname, carPort, request);
 					break;
 				case ADD_FLIGHT:
-					serverReply = queryServer(flightHostname, flightPort, request);
+					serverReply = queryServer(flightHostname, flightPort,
+							request);
 					break;
 				case ADD_ROOMS:
 					serverReply = queryServer(roomHostname, roomPort, request);
@@ -94,19 +103,37 @@ public class MiddlewareWorker extends Thread {
 					serverReply = queryServer(carHostname, carPort, request);
 					break;
 				case DELETE_CUSTOMER:
-					// TODO
+					synchronized (crm) {
+						reply = crm.deleteCustomer(
+								(Integer) request.getParams()[0],
+								(Integer) request.getParams()[1]);
+						serverReply = new ReplyMessage(Command.DELETE_CUSTOMER,
+								reply);
+					}
 					break;
 				case DELETE_FLIGHT:
-					serverReply = queryServer(flightHostname, flightPort, request);
+					serverReply = queryServer(flightHostname, flightPort,
+							request);
 					break;
 				case DELETE_ROOMS:
 					serverReply = queryServer(roomHostname, roomPort, request);
 					break;
 				case NEW_CUSTOMER:
-					// TODO
+					synchronized (crm) {
+						reply = crm
+								.newCustomer((Integer) request.getParams()[0]);
+						serverReply = new ReplyMessage(Command.NEW_CUSTOMER,
+								reply);
+					}
 					break;
 				case NEW_CUSTOMER_CID:
-					// TODO
+					synchronized (crm) {
+						reply = crm.newCustomer(
+								(Integer) request.getParams()[0],
+								(Integer) request.getParams()[1]);
+						serverReply = new ReplyMessage(
+								Command.NEW_CUSTOMER_CID, reply);
+					}
 					break;
 				case QUERY_CARS:
 					serverReply = queryServer(carHostname, carPort, request);
@@ -115,13 +142,21 @@ public class MiddlewareWorker extends Thread {
 					serverReply = queryServer(carHostname, carPort, request);
 					break;
 				case QUERY_CUSTOMER_INFO:
-					// TODO
+					synchronized (crm) {
+						reply = crm.queryCustomerInfo(
+								(Integer) request.getParams()[0],
+								(Integer) request.getParams()[1]);
+						serverReply = new ReplyMessage(
+								Command.QUERY_CUSTOMER_INFO, reply);
+					}
 					break;
 				case QUERY_FLIGHT:
-					serverReply = queryServer(flightHostname, flightPort, request);
+					serverReply = queryServer(flightHostname, flightPort,
+							request);
 					break;
 				case QUERY_FLIGHT_PRICE:
-					serverReply = queryServer(flightHostname, flightPort, request);
+					serverReply = queryServer(flightHostname, flightPort,
+							request);
 					break;
 				case QUERY_ROOMS:
 					serverReply = queryServer(roomHostname, roomPort, request);
@@ -130,13 +165,53 @@ public class MiddlewareWorker extends Thread {
 					serverReply = queryServer(roomHostname, roomPort, request);
 					break;
 				case RESERVE_CAR:
-					// TODO
+					Object[] params = request.getParams();
+					int id = (Integer) params[0];
+					int custID = (Integer) params[1];
+					String location = (String) params[2];
+					// See if any cars are available at this location
+					int carsAvail = (Integer) queryServer(
+							carHostname,
+							carPort,
+							new RequestMessage(Command.QUERY_CARS,
+									new Object[] { id, location }))
+							.getReturnValue();
+					if (carsAvail > 0) {
+						// Car is available, try to book the customer
+						int price = (Integer) queryServer(
+								carHostname,
+								carPort,
+								new RequestMessage(Command.QUERY_CARS_PRICE,
+										new Object[] { id, location }))
+								.getReturnValue();
+						boolean custAvail = false;
+						synchronized (crm) {
+							custAvail = (crm.reserveCustomer(id, custID,
+									Car.getKey(location), location, price));
+						}
+						if (custAvail) {
+							// Customer has been reserved, now book the car.
+							serverReply = queryServer(carHostname, carPort,
+									request);
+							break;
+						}
+						Trace.warn("Customer unavailable to book car");
+					}
+					// Customer unavailable or no cars available
+					Trace.warn("Car is not available");
+					serverReply = new ReplyMessage(request.getCommand(), false);
 					break;
+
 				case RESERVE_FLIGHT:
 					// TODO
 					break;
 				case RESERVE_ITINERARY:
 					// TODO
+					// Trace.info("MW::reserveItinerary(" + id + ", " + customer
+					// + ", "
+					// + flightNumbers + ", " + location + ", " + car + ", " +
+					// room
+					// + ") was called");
 					break;
 				case RESERVE_ROOM:
 					// TODO
@@ -149,11 +224,18 @@ public class MiddlewareWorker extends Thread {
 				clientOutput.writeObject(serverReply);
 			} catch (IOException e) {
 				// Couldn't read from client input or couldn't connect to host
-				e.printStackTrace();
+				System.out.println("Disconnected from client");
+				try {
+					clientOutput.close();
+					clientSocket.close();
+				} catch (IOException e2) {
+					// Who cares??
+				}
 				return;
+
 			} catch (ClassNotFoundException e) {
 				// Couldn't understand one of the request or the reply
-				e.printStackTrace();
+				System.out.println("Couldn't understand a message");
 			}
 		}
 
