@@ -4,14 +4,16 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-
-import ResImpl.Car;
-import ResImpl.CustomerResourceManager;
-import ResImpl.Trace;
+import java.util.Vector;
 
 import messages.Command;
 import messages.ReplyMessage;
 import messages.RequestMessage;
+import ResImpl.Car;
+import ResImpl.CustomerResourceManager;
+import ResImpl.Flight;
+import ResImpl.Hotel;
+import ResImpl.Trace;
 
 /**
  * One of these threads gets run per client. We don't need to worry about
@@ -166,55 +168,24 @@ public class MiddlewareWorker extends Thread {
 					break;
 				case RESERVE_CAR:
 					Object[] params = request.getParams();
-					int id = (Integer) params[0];
-					int custID = (Integer) params[1];
-					String location = (String) params[2];
-					// See if any cars are available at this location
-					int carsAvail = (Integer) queryServer(
-							carHostname,
-							carPort,
-							new RequestMessage(Command.QUERY_CARS,
-									new Object[] { id, location }))
-							.getReturnValue();
-					if (carsAvail > 0) {
-						// Car is available, try to book the customer
-						int price = (Integer) queryServer(
-								carHostname,
-								carPort,
-								new RequestMessage(Command.QUERY_CARS_PRICE,
-										new Object[] { id, location }))
-								.getReturnValue();
-						boolean custAvail = false;
-						synchronized (crm) {
-							custAvail = (crm.reserveCustomer(id, custID,
-									Car.getKey(location), location, price));
-						}
-						if (custAvail) {
-							// Customer has been reserved, now book the car.
-							serverReply = queryServer(carHostname, carPort,
-									request);
-							break;
-						}
-						Trace.warn("Customer unavailable to book car");
-					}
-					// Customer unavailable or no cars available
-					Trace.warn("Car is not available");
-					serverReply = new ReplyMessage(request.getCommand(), false);
+					serverReply = reserveCar(request);
 					break;
 
 				case RESERVE_FLIGHT:
-					// TODO
+					params = request.getParams();
+					serverReply = reserveFlight(request);
 					break;
+
 				case RESERVE_ITINERARY:
-					// TODO
-					// Trace.info("MW::reserveItinerary(" + id + ", " + customer
-					// + ", "
-					// + flightNumbers + ", " + location + ", " + car + ", " +
-					// room
-					// + ") was called");
+					/*
+					 * NOTE this is not all or nothing, it might book some stuff
+					 * and then fail without a rollback
+					 */
+					serverReply = reserveItinerary(request);
 					break;
+
 				case RESERVE_ROOM:
-					// TODO
+					serverReply = reserveRoom(request);
 					break;
 				default:
 					System.err.println("Unrecognized command.");
@@ -239,6 +210,177 @@ public class MiddlewareWorker extends Thread {
 			}
 		}
 
+	}
+
+	private ReplyMessage reserveRoom(RequestMessage request)
+			throws ClassNotFoundException, IOException {
+		int id = (Integer) request.getParams()[0];
+		int custID = (Integer) request.getParams()[1];
+		String location = (String) request.getParams()[2];
+		// See if any rooms are available at this location
+		int roomsAvail = (Integer) queryServer(
+				roomHostname,
+				roomPort,
+				new RequestMessage(Command.QUERY_ROOMS, new Object[] { id,
+						location })).getReturnValue();
+		if (roomsAvail > 0) {
+			// Room is available, try to book the customer
+			int price = (Integer) queryServer(
+					roomHostname,
+					roomPort,
+					new RequestMessage(Command.QUERY_ROOMS_PRICE, new Object[] {
+							id, location })).getReturnValue();
+			boolean custAvail = false;
+			synchronized (crm) {
+				custAvail = (crm.reserveCustomer(id, custID,
+						Hotel.getKey(location), location, price));
+			}
+			if (custAvail) {
+				// Customer has been reserved, now book the room.
+				return queryServer(roomHostname, roomPort, request);
+			}
+		}
+		// Customer unavailable or no cars available
+		Trace.warn("Customer unavailable to book room or room is not available");
+		return new ReplyMessage(request.getCommand(), false);
+	}
+
+	private ReplyMessage reserveFlight(RequestMessage request)
+			throws ClassNotFoundException, IOException {
+		int id = (Integer) request.getParams()[0];
+		int custID = (Integer) request.getParams()[1];
+		int flightNum = (Integer) request.getParams()[2];
+
+		// See if any flights are available at this location
+		int flightsAvail = (Integer) queryServer(
+				flightHostname,
+				flightPort,
+				new RequestMessage(Command.QUERY_FLIGHT, new Object[] { id,
+						flightNum })).getReturnValue();
+		if (flightsAvail > 0) {
+			// Flight is available, try to book the customer
+			int price = (Integer) queryServer(
+					flightHostname,
+					flightPort,
+					new RequestMessage(Command.QUERY_FLIGHT_PRICE,
+							new Object[] { id, flightNum })).getReturnValue();
+			boolean custAvail = false;
+			synchronized (crm) {
+				custAvail = (crm.reserveCustomer(id, custID,
+						Flight.getKey(flightNum), String.valueOf(flightNum),
+						price));
+			}
+			if (custAvail) {
+				// Customer has been reserved, now book the flight.
+				return queryServer(flightHostname, flightPort, request);
+			}
+		}
+		// Customer unavailable or no seats available
+		Trace.warn("Customer unavailable to book flight or flight is not available");
+		return new ReplyMessage(request.getCommand(), false);
+	}
+
+	private ReplyMessage reserveCar(RequestMessage request)
+			throws ClassNotFoundException, IOException {
+		int id = (Integer) request.getParams()[0];
+		int custID = (Integer) request.getParams()[1];
+		String location = (String) request.getParams()[2];
+
+		// See if any cars are available at this location
+		int carsAvail = (Integer) queryServer(
+				carHostname,
+				carPort,
+				new RequestMessage(Command.QUERY_CARS, new Object[] { id,
+						location })).getReturnValue();
+		if (carsAvail > 0) {
+			// Car is available, try to book the customer
+			int price = (Integer) queryServer(
+					carHostname,
+					carPort,
+					new RequestMessage(Command.QUERY_CARS_PRICE, new Object[] {
+							id, location })).getReturnValue();
+			boolean custAvail = false;
+			synchronized (crm) {
+				custAvail = (crm.reserveCustomer(id, custID,
+						Car.getKey(location), location, price));
+			}
+			if (custAvail) {
+				// Customer has been reserved, now book the car.
+				return queryServer(carHostname, carPort, request);
+			}
+		}
+		// Customer unavailable or no cars available
+		Trace.warn("Customer unavailable to book car or car is not available");
+		return new ReplyMessage(request.getCommand(), false);
+	}
+	
+	private ReplyMessage reserveItinerary(RequestMessage request) throws ClassNotFoundException, IOException {
+		Object[] params = request.getParams();
+		int id = (Integer) params[0];
+		int custID = (Integer) params[1];
+		Vector flightNumbers = (Vector) params[2];
+		String location = (String) params[3];
+		boolean car = (Boolean) params[4];
+		boolean room = (Boolean) params[5];
+
+		Trace.info("MW::reserveItinerary(" + id + ", " + custID
+				+ ", " + flightNumbers + ", " + location + ", "
+				+ car + ", " + room + ") was called");
+
+		// Book the flights.
+		for (Object flightNumber : flightNumbers) {
+			// Ugly cast... not *my* decision to design things this
+			// way, lol
+			int flightNum = Integer.parseInt((String) flightNumber);
+			boolean success = (Boolean) reserveFlight(
+					new RequestMessage(Command.RESERVE_FLIGHT,
+							new Object[] { id, custID, flightNum }))
+					.getReturnValue();
+			// Book it
+			if (!success) {
+				// One of the flights couldn't be booked, abort!
+				Trace.warn("MW::reserveItinerary failed, could not reserve flight "
+						+ flightNum);
+				return new ReplyMessage(Command.RESERVE_ITINERARY, false);
+			} else {
+				Trace.info("MW::reserveItinerary:: reserved flight " + flightNum);
+			}
+		}
+
+		if (car) {
+			// Try to reserve the car
+			boolean success = (Boolean) reserveCar(
+					new RequestMessage(Command.RESERVE_CAR,
+							new Object[] { id, custID, location }))
+					.getReturnValue();
+			if (!success) {
+				Trace.warn("MW::reserveItinerary failed, could not reserve car at location "
+						+ location);
+				return new ReplyMessage(Command.RESERVE_ITINERARY, false);
+			} else {
+				Trace.info("MW::reserveItinerary:: reserved car at location "
+						+ location);
+			}
+		}
+
+		if (room) {
+			// Try to reserve the room
+			boolean success = (Boolean) reserveRoom(
+					new RequestMessage(Command.RESERVE_ROOM,
+							new Object[] { id, custID, location }))
+					.getReturnValue();
+			if (!success) {
+				Trace.warn("MW::reserveItinerary failed, could not reserve room at location "
+						+ location);
+				return new ReplyMessage(Command.RESERVE_ITINERARY, false);
+			} else {
+				Trace.info("MW::reserveItinerary:: reserved room at location "
+						+ location);
+			}
+		}
+
+		// Everything worked!
+		return new ReplyMessage(Command.RESERVE_ITINERARY, true);
 	}
 
 	/**
