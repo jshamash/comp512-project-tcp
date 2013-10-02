@@ -4,12 +4,9 @@
 //
 package ResImpl;
 
-import java.rmi.RemoteException;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Vector;
-
-import com.sun.org.apache.xalan.internal.xsltc.compiler.sym;
 
 import ResInterface.ResourceManager;
 
