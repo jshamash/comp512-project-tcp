@@ -131,7 +131,8 @@ public class MiddlewareWorker extends Thread {
 								String reservedkey = (String) (e.nextElement());
 								ReservedItem reserveditem = cust
 										.getReservedItem(reservedkey);
-								Trace.info("RM::deleteCustomer(" + id + ", "
+								int count = reserveditem.getCount();
+								Trace.info("MW::deleteCustomer(" + id + ", "
 										+ customerID + ") has reserved "
 										+ reserveditem.getKey() + " "
 										+ reserveditem.getCount() + " times");
@@ -146,8 +147,8 @@ public class MiddlewareWorker extends Thread {
 											carPort,
 											new RequestMessage(
 													Command.REMOVE_RESERVATIONS,
-													new Object[] { id,
-															customerID }));
+													new Object[] { id, key,
+															count }));
 									break;
 								case "hotel":
 									queryServer(
@@ -155,8 +156,8 @@ public class MiddlewareWorker extends Thread {
 											roomPort,
 											new RequestMessage(
 													Command.REMOVE_RESERVATIONS,
-													new Object[] { id,
-															customerID }));
+													new Object[] { id, key,
+															count }));
 									break;
 								case "flight":
 									queryServer(
@@ -164,8 +165,8 @@ public class MiddlewareWorker extends Thread {
 											flightPort,
 											new RequestMessage(
 													Command.REMOVE_RESERVATIONS,
-													new Object[] { id,
-															customerID }));
+													new Object[] { id, key,
+															count }));
 									break;
 								default:
 									// Just ask them all to do it -- no effect
@@ -176,22 +177,22 @@ public class MiddlewareWorker extends Thread {
 											carPort,
 											new RequestMessage(
 													Command.REMOVE_RESERVATIONS,
-													new Object[] { id,
-															customerID }));
+													new Object[] { id, key,
+															count }));
 									queryServer(
 											roomHostname,
 											roomPort,
 											new RequestMessage(
 													Command.REMOVE_RESERVATIONS,
-													new Object[] { id,
-															customerID }));
+													new Object[] { id, key,
+															count }));
 									queryServer(
 											flightHostname,
 											flightPort,
 											new RequestMessage(
 													Command.REMOVE_RESERVATIONS,
-													new Object[] { id,
-															customerID }));
+													new Object[] { id, key,
+															count }));
 								}
 							}
 							reply = crm.deleteCustomer(

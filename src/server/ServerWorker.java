@@ -134,6 +134,10 @@ public class ServerWorker extends Thread {
 						(Boolean) params[5]);
 				replyMessage = new ReplyMessage(cmd, reply);
 				break;
+			case REMOVE_RESERVATIONS:
+				reply = rm.removeReservations((Integer) params[0],
+						(String) params[1], (Integer) params[2]);
+				replyMessage = new ReplyMessage(cmd, reply);
 			default:
 				System.err.println("Unexpected command type: " + cmd);
 			}
