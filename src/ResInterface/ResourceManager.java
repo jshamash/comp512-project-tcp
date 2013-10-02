@@ -110,5 +110,7 @@ public interface ResourceManager {
 	/* reserve an itinerary */
 	public boolean reserveItinerary(int id, int customer, Vector flightNumbers,
 			String location, boolean Car, boolean Room);
+	
+	public boolean removeReservations(int id, String key, int count);
 
 }

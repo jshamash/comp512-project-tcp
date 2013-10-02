@@ -4,15 +4,19 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Enumeration;
 import java.util.Vector;
 
 import messages.Command;
 import messages.ReplyMessage;
 import messages.RequestMessage;
 import ResImpl.Car;
+import ResImpl.Customer;
 import ResImpl.CustomerResourceManager;
 import ResImpl.Flight;
 import ResImpl.Hotel;
+import ResImpl.RMHashtable;
+import ResImpl.ReservedItem;
 import ResImpl.Trace;
 
 /**
@@ -105,13 +109,98 @@ public class MiddlewareWorker extends Thread {
 					serverReply = queryServer(carHostname, carPort, request);
 					break;
 				case DELETE_CUSTOMER:
+					int id = (Integer) request.getParams()[0];
+					int customerID = (Integer) request.getParams()[1];
+					Trace.info("MW::deleteCustomer(" + id + ", " + customerID
+							+ ") called");
+					// Get customer object from RM
+					// Don't want anyone touching this cust object while we're
+					// deleting it!
 					synchronized (crm) {
-						reply = crm.deleteCustomer(
-								(Integer) request.getParams()[0],
-								(Integer) request.getParams()[1]);
-						serverReply = new ReplyMessage(Command.DELETE_CUSTOMER,
-								reply);
+						Customer cust = crm.getCustomer(id, customerID);
+						if (cust == null) {
+							Trace.warn("MW::deleteCustomer(" + id + ", "
+									+ customerID
+									+ ") failed--customer doesn't exist");
+							reply = false;
+						} else {
+							// for each reservation, mark them unreserved.
+							RMHashtable reservationHT = cust.getReservations();
+							for (Enumeration e = reservationHT.keys(); e
+									.hasMoreElements();) {
+								String reservedkey = (String) (e.nextElement());
+								ReservedItem reserveditem = cust
+										.getReservedItem(reservedkey);
+								Trace.info("RM::deleteCustomer(" + id + ", "
+										+ customerID + ") has reserved "
+										+ reserveditem.getKey() + " "
+										+ reserveditem.getCount() + " times");
+
+								String key = reserveditem.getKey();
+								String type = key.split("-")[0];
+								System.out.println(type);
+								switch (type) {
+								case "car":
+									queryServer(
+											carHostname,
+											carPort,
+											new RequestMessage(
+													Command.REMOVE_RESERVATIONS,
+													new Object[] { id,
+															customerID }));
+									break;
+								case "hotel":
+									queryServer(
+											roomHostname,
+											roomPort,
+											new RequestMessage(
+													Command.REMOVE_RESERVATIONS,
+													new Object[] { id,
+															customerID }));
+									break;
+								case "flight":
+									queryServer(
+											flightHostname,
+											flightPort,
+											new RequestMessage(
+													Command.REMOVE_RESERVATIONS,
+													new Object[] { id,
+															customerID }));
+									break;
+								default:
+									// Just ask them all to do it -- no effect
+									// if it
+									// doesn't have the item.
+									queryServer(
+											carHostname,
+											carPort,
+											new RequestMessage(
+													Command.REMOVE_RESERVATIONS,
+													new Object[] { id,
+															customerID }));
+									queryServer(
+											roomHostname,
+											roomPort,
+											new RequestMessage(
+													Command.REMOVE_RESERVATIONS,
+													new Object[] { id,
+															customerID }));
+									queryServer(
+											flightHostname,
+											flightPort,
+											new RequestMessage(
+													Command.REMOVE_RESERVATIONS,
+													new Object[] { id,
+															customerID }));
+								}
+							}
+							reply = crm.deleteCustomer(
+									(Integer) request.getParams()[0],
+									(Integer) request.getParams()[1]);
+						}
 					}
+					serverReply = new ReplyMessage(Command.DELETE_CUSTOMER,
+							reply);
 					break;
 				case DELETE_FLIGHT:
 					serverReply = queryServer(flightHostname, flightPort,
@@ -313,8 +402,9 @@ public class MiddlewareWorker extends Thread {
 		Trace.warn("Customer unavailable to book car or car is not available");
 		return new ReplyMessage(request.getCommand(), false);
 	}
-	
-	private ReplyMessage reserveItinerary(RequestMessage request) throws ClassNotFoundException, IOException {
+
+	private ReplyMessage reserveItinerary(RequestMessage request)
+			throws ClassNotFoundException, IOException {
 		Object[] params = request.getParams();
 		int id = (Integer) params[0];
 		int custID = (Integer) params[1];
@@ -323,9 +413,9 @@ public class MiddlewareWorker extends Thread {
 		boolean car = (Boolean) params[4];
 		boolean room = (Boolean) params[5];
 
-		Trace.info("MW::reserveItinerary(" + id + ", " + custID
-				+ ", " + flightNumbers + ", " + location + ", "
-				+ car + ", " + room + ") was called");
+		Trace.info("MW::reserveItinerary(" + id + ", " + custID + ", "
+				+ flightNumbers + ", " + location + ", " + car + ", " + room
+				+ ") was called");
 
 		// Book the flights.
 		for (Object flightNumber : flightNumbers) {
@@ -333,9 +423,8 @@ public class MiddlewareWorker extends Thread {
 			// way, lol
 			int flightNum = Integer.parseInt((String) flightNumber);
 			boolean success = (Boolean) reserveFlight(
-					new RequestMessage(Command.RESERVE_FLIGHT,
-							new Object[] { id, custID, flightNum }))
-					.getReturnValue();
+					new RequestMessage(Command.RESERVE_FLIGHT, new Object[] {
+							id, custID, flightNum })).getReturnValue();
 			// Book it
 			if (!success) {
 				// One of the flights couldn't be booked, abort!
@@ -343,16 +432,16 @@ public class MiddlewareWorker extends Thread {
 						+ flightNum);
 				return new ReplyMessage(Command.RESERVE_ITINERARY, false);
 			} else {
-				Trace.info("MW::reserveItinerary:: reserved flight " + flightNum);
+				Trace.info("MW::reserveItinerary:: reserved flight "
+						+ flightNum);
 			}
 		}
 
 		if (car) {
 			// Try to reserve the car
 			boolean success = (Boolean) reserveCar(
-					new RequestMessage(Command.RESERVE_CAR,
-							new Object[] { id, custID, location }))
-					.getReturnValue();
+					new RequestMessage(Command.RESERVE_CAR, new Object[] { id,
+							custID, location })).getReturnValue();
 			if (!success) {
 				Trace.warn("MW::reserveItinerary failed, could not reserve car at location "
 						+ location);
@@ -366,9 +455,8 @@ public class MiddlewareWorker extends Thread {
 		if (room) {
 			// Try to reserve the room
 			boolean success = (Boolean) reserveRoom(
-					new RequestMessage(Command.RESERVE_ROOM,
-							new Object[] { id, custID, location }))
-					.getReturnValue();
+					new RequestMessage(Command.RESERVE_ROOM, new Object[] { id,
+							custID, location })).getReturnValue();
 			if (!success) {
 				Trace.warn("MW::reserveItinerary failed, could not reserve room at location "
 						+ location);

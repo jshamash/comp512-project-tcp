@@ -40,10 +40,8 @@ public class ServerWorker extends Thread {
 			in.close();
 			clientSocket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -73,15 +71,6 @@ public class ServerWorker extends Thread {
 						(Integer) params[2], (Integer) params[3]);
 				replyMessage = new ReplyMessage(cmd, reply);
 				break;
-			case NEW_CUSTOMER:
-				reply = rm.newCustomer((Integer) params[0]);
-				replyMessage = new ReplyMessage(cmd, reply);
-				break;
-			case NEW_CUSTOMER_CID:
-				reply = rm
-						.newCustomer((Integer) params[0], (Integer) params[1]);
-				replyMessage = new ReplyMessage(cmd, reply);
-				break;
 			case DELETE_FLIGHT:
 				reply = rm.deleteFlight((Integer) params[0],
 						(Integer) params[1]);
@@ -95,11 +84,6 @@ public class ServerWorker extends Thread {
 				reply = rm.deleteRooms((Integer) params[0], (String) params[1]);
 				replyMessage = new ReplyMessage(cmd, reply);
 				break;
-			case DELETE_CUSTOMER:
-				reply = rm.deleteCustomer((Integer) params[0],
-						(Integer) params[1]);
-				replyMessage = new ReplyMessage(cmd, reply);
-				break;
 			case QUERY_FLIGHT:
 				reply = rm
 						.queryFlight((Integer) params[0], (Integer) params[1]);
@@ -111,11 +95,6 @@ public class ServerWorker extends Thread {
 				break;
 			case QUERY_ROOMS:
 				reply = rm.queryRooms((Integer) params[0], (String) params[1]);
-				replyMessage = new ReplyMessage(cmd, reply);
-				break;
-			case QUERY_CUSTOMER_INFO:
-				reply = rm.queryCustomerInfo((Integer) params[0],
-						(Integer) params[1]);
 				replyMessage = new ReplyMessage(cmd, reply);
 				break;
 			case QUERY_CARS_PRICE:
