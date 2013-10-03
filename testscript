@@ -1,0 +1,18 @@
+#/bin/bash
+
+# For testing purposes
+# Launches three servers, a middleware and two clients, all running on localhost.
+
+cd src
+javac */*.java
+
+xterm -e "java server.Server 6060" &
+xterm -e "java server.Server 6161" &
+xterm -e "java server.Server 6262" &
+read -p "When all servers are ready, press enter to launch middleware"
+xterm -e "java middleware.Middleware localhost 6060 localhost 6161 localhost 6262 6363" &
+read -p "When middleware is ready, press enter to launch clients"
+echo "Press ctrl-C to end the application"
+xterm -e "java client.Client localhost 6363" &
+xterm -e "java client.Client localhost 6363"
+exit 0

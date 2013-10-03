@@ -28,3 +28,13 @@ java middleware.Middleware <server1-hostname> <sever1-port> <server2-hostname> <
 java client.Client <middleware-hostname> <middleware-port>
 ```
 
+## Testing locally
+
+To test everything locally, run
+
+```
+cd comp512-project
+./testscript
+```
+
+This will launch three servers, a middleware, and two clients, all running on localhost.
