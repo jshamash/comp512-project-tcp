@@ -433,21 +433,27 @@ public class ResourceManagerImpl implements ResourceManager {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see ResInterface.ResourceManager#removeReservations(int, java.lang.String, int)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see ResInterface.ResourceManager#removeReservations(int,
+	 * java.lang.String, int)
 	 */
 	@Override
 	public boolean removeReservations(int id, String key, int count) {
-		ReservableItem item = (ReservableItem) readData(id, key);
-		if (item != null) {
-			Trace.info("RM::removing reservations for " + key
-					+ "which is reserved " + item.getReserved()
-					+ " times and is still available " + item.getCount() + " times");
-			item.setReserved(item.getReserved() - count);
-			item.setCount(item.getCount() + count);
-			return true;
+		synchronized (m_itemHT) {
+			ReservableItem item = (ReservableItem) readData(id, key);
+			if (item != null) {
+				Trace.info("RM::removing reservations for " + key
+						+ " which is reserved " + item.getReserved()
+						+ " times and is still available " + item.getCount()
+						+ " times");
+				item.setReserved(item.getReserved() - count);
+				item.setCount(item.getCount() + count);
+				return true;
+			}
+			return false;
 		}
-		return false;
 	}
 
 }

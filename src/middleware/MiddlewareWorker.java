@@ -139,7 +139,6 @@ public class MiddlewareWorker extends Thread {
 
 								String key = reserveditem.getKey();
 								String type = key.split("-")[0];
-								System.out.println(type);
 								switch (type) {
 								case "car":
 									queryServer(
@@ -150,7 +149,7 @@ public class MiddlewareWorker extends Thread {
 													new Object[] { id, key,
 															count }));
 									break;
-								case "hotel":
+								case "room":
 									queryServer(
 											roomHostname,
 											roomPort,
